@@ -8,6 +8,7 @@ public class Player : MonoBehaviour
     [SerializeField] private PlayerCamera playerCamera;
     [SerializeField] private CameraSpring cameraSpring;
     [SerializeField] private CameraLean cameraLean;
+    [SerializeField] private PlayerShoot playerShoot;
     [SerializeField] private Volume volume;
     [SerializeField] private StanceVignette stanceVignette;
 
@@ -49,6 +50,7 @@ public class Player : MonoBehaviour
             Crouch = input.Crouch.WasPressedThisFrame() ? CrouchInput.Toggle : CrouchInput.None
         };
         playerCharacter.UpdateInput(characterInput);
+        playerShoot.OnAttack(input.Attack.IsPressed());
         playerCharacter.UpdateBody(deltaTime);
         #if UNITY_EDITOR
         if (Keyboard.current.tKey.wasPressedThisFrame){
@@ -69,6 +71,7 @@ public class Player : MonoBehaviour
         cameraSpring.UpdateSpring(deltaTime, cameraTarget.up);
         cameraLean.UpdateLean(deltaTime, state.Stance is Stance.Slide, state.Acceleration, cameraTarget.up);
         stanceVignette.UpdateVignette(deltaTime, state.Stance);
+
 
     }
 

@@ -4,6 +4,7 @@ public class Enemy : MonoBehaviour
 {
     [Header("Movement")]
     public float speed = 7f;
+    public float health = 100f;
 
     [Header("Climbing")]
     public float climbSpeed = 6f;
@@ -118,6 +119,15 @@ public class Enemy : MonoBehaviour
 
         // Stay climbing while timer active
         isClimbing = climbTimer > 0f;
+    }
+
+    public void HitEnemy(float power)
+    {
+        health -= power;
+        if (health <= 0)
+        {
+            Destroy(gameObject);
+        }
     }
 
     void OnDrawGizmosSelected()
