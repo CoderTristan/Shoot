@@ -16,6 +16,8 @@ public struct CharacterState
     public bool Grounded;
     public Stance Stance;
     public Vector3 Velocity;
+    public Vector3 Acceleration;
+
 }
 
 public struct CharacterInput
@@ -84,6 +86,8 @@ public class PlayerCharacter : MonoBehaviour, ICharacterController
     private bool _requestedCrouch;
 
     private bool _requestedCrouchInAir;
+    private bool _ungroundedDueToJump;
+
 
     private Collider[] _uncrouchOverlapResults;
     private float _timeSinceUngrounded; 
@@ -155,8 +159,10 @@ root.localPosition = new Vector3(0f, bottom, 0f);
 
     public void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
     {
+        _state.Acceleration = Vector3.zero;
         if (motor.GroundingStatus.IsStableOnGround)
         {
+            _ungroundedDueToJump = false;
             _timeSinceUngrounded = 0f;
             var groundedMovement = motor.GetDirectionTangentToSurface(direction:_requestedMovement, surfaceNormal: motor.GroundingStatus.GroundNormal) * _requestedMovement.magnitude;
             {
@@ -189,10 +195,13 @@ root.localPosition = new Vector3(0f, bottom, 0f);
                 var speed = _state.Stance is Stance.Stand ? walkSpeed : crouchSpeed;
                 var response = _state.Stance is Stance.Stand ? walkResponse : crouchResponse;
 
-                var targetVelocity = _requestedMovement * speed;
-                currentVelocity = Vector3.Lerp(
+                var targetVelocity = groundedMovement * speed;
+                var moveVelocity = Vector3.Lerp(
                     a: currentVelocity,
                     b: targetVelocity, t: 1f - Mathf.Exp(-response * deltaTime));
+
+                _state.Acceleration = moveVelocity - currentVelocity;
+                currentVelocity = moveVelocity;
             }
             else
             {
@@ -209,9 +218,13 @@ root.localPosition = new Vector3(0f, bottom, 0f);
                 {
                     var currentSpeed = currentVelocity.magnitude;
                     var targetVelocity = groundedMovement * currentSpeed;
+                    var steerVelocity = currentVelocity;
+
                     var steerForce = (targetVelocity - currentVelocity) * slideSteerAcceleration * deltaTime;
-                    currentVelocity += steerForce;
-                    currentVelocity = Vector3.ClampMagnitude(currentVelocity, currentSpeed);
+                    steerVelocity += steerForce;
+                    steerVelocity = Vector3.ClampMagnitude(steerVelocity, currentSpeed);
+                    _state.Acceleration =( steerVelocity - currentVelocity) * deltaTime;
+                    currentVelocity = steerVelocity;
                 }
                 if (currentVelocity.magnitude < slideEndSpeed)
                 {
@@ -272,7 +285,7 @@ root.localPosition = new Vector3(0f, bottom, 0f);
         if (_requestedJump)
         {
             var grounded = motor.GroundingStatus.IsStableOnGround;
-            var canCoyoteJump = _timeSinceUngrounded < coyoteTime;
+            var canCoyoteJump = _timeSinceUngrounded < coyoteTime && !_ungroundedDueToJump;
             if (grounded || canCoyoteJump)
             {
                 
@@ -282,6 +295,7 @@ root.localPosition = new Vector3(0f, bottom, 0f);
 
 
                 motor.ForceUnground(time: 0f);
+                _ungroundedDueToJump = true;
                 var currentVerticalSpeed = Vector3.Dot(currentVelocity, motor.CharacterUp);
                 var targetVerticalSpeed = Mathf.Max(currentVerticalSpeed, jumpSpeed);
                 currentVelocity += motor.CharacterUp * (targetVerticalSpeed - currentVerticalSpeed);
@@ -325,6 +339,8 @@ root.localPosition = new Vector3(0f, bottom, 0f);
         }
         _state.Grounded = motor.GroundingStatus.IsStableOnGround;
         _state.Velocity = motor.Velocity;
+        var totalAcceleration = (_state.Velocity - _lastState.Velocity) / deltaTime;
+        _state.Acceleration = Vector3.ClampMagnitude(_state.Acceleration, totalAcceleration.magnitude);
         _lastState = _tempState;
     }
 
@@ -335,7 +351,7 @@ root.localPosition = new Vector3(0f, bottom, 0f);
 
     public void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
     {
-        
+         _state.Acceleration = Vector3.ProjectOnPlane(_state.Acceleration, hitNormal);
     }
 
     public void PostGroundingUpdate(float deltaTime)
@@ -369,5 +385,9 @@ root.localPosition = new Vector3(0f, bottom, 0f);
             motor.BaseVelocity = Vector3.zero;
         }
     }
+
+    public CharacterState GetState() => _state;
+    public CharacterState GetLastState() => _lastState;
+
 
 }
