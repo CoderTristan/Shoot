@@ -156,7 +156,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd4fe06fd76016242a3692e3dbb350a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  speed: 7
+  speed: 15
   health: 100
   climbSpeed: 6
   climbCheckDistance: 0.5

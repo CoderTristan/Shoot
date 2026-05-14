@@ -1,38 +1,48 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class SpawnEnemies : MonoBehaviour
 {
     [Header("Spawn Settings")]
     [SerializeField] private GameObject enemyPrefab;
-    [SerializeField] private int enemyCount = 5;
 
     [Header("Spawn Points")]
     [SerializeField] private List<Transform> spawnPoints = new List<Transform>();
 
+    [Header("Timing")]
+    [SerializeField] private float spawnInterval = 30f;
+
     private void Start()
     {
-        SpawnEnemy();
+        StartCoroutine(SpawnLoop());
     }
 
-    private void SpawnEnemy()
+    private IEnumerator SpawnLoop()
     {
-        if (enemyPrefab == null)
+        while (true)
         {
-            Debug.LogWarning("EnemySpawner: No enemy prefab assigned!");
+            SpawnWave();
+            yield return new WaitForSeconds(spawnInterval);
+        }
+    }
+
+    private void SpawnWave()
+    {
+        if (enemyPrefab == null || spawnPoints.Count == 0)
+        {
+            Debug.LogWarning("Spawner missing prefab or spawn points!");
             return;
         }
 
-        if (spawnPoints.Count == 0)
+        foreach (Transform point in spawnPoints)
         {
-            Debug.LogWarning("EnemySpawner: No spawn points assigned!");
-            return;
-        }
+            int amount = Random.Range(8, 11); // 8–10 inclusive
 
-        for (int i = 0; i < enemyCount; i++)
-        {
-            Transform point = spawnPoints[i % spawnPoints.Count];
-            Instantiate(enemyPrefab, point.position, point.rotation);
+            for (int i = 0; i < amount; i++)
+            {
+                Instantiate(enemyPrefab, point.position, point.rotation);
+            }
         }
     }
 }

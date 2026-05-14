@@ -5,6 +5,7 @@ public class PlayerHealth : MonoBehaviour
     [Header("Health")]
     public int maxHealth = 100;
     public int currentHealth;
+    [SerializeField] private UpdateHealth updateHealth;
 
     [Header("Death UI")]
     public GameObject deathScreen; 
@@ -17,6 +18,8 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
+
+        updateHealth.HealthChange(currentHealth);
 
         if (currentHealth <= 0)
         {
