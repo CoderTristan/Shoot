@@ -3,7 +3,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     [Header("Movement")]
-    public float speed = 7f;
+    public float speed = 10f;
     public float health = 100f;
 
     [Header("Climbing")]

@@ -9,6 +9,8 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("Death UI")]
     public GameObject deathScreen; 
+    public GameObject healthScreen; 
+
 
     private void Start()
     {
@@ -20,20 +22,20 @@ public class PlayerHealth : MonoBehaviour
         currentHealth -= amount;
 
         updateHealth.HealthChange(currentHealth);
-
         if (currentHealth <= 0)
         {
+
+            updateHealth.HealthChange(0);
+
+
             Die();
         }
+
     }
 
     private void Die()
     {
-        Debug.Log("Player died");
-        GetComponent<PlayerCharacter>().enabled = false;
-        GetComponent<PlayerShoot>().enabled = false;
-
-
+        if (healthScreen != null) healthScreen.SetActive(false);
         if (deathScreen != null) deathScreen.SetActive(true);
     }
 }

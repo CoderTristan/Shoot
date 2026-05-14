@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class SpawnEnemies : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    [SerializeField] private GameObject enemyPrefab;
+    [SerializeField] private List<GameObject> enemyPrefabs = new List<GameObject>();
 
     [Header("Spawn Points")]
     [SerializeField] private List<Transform> spawnPoints = new List<Transform>();
@@ -29,9 +29,9 @@ public class SpawnEnemies : MonoBehaviour
 
     private void SpawnWave()
     {
-        if (enemyPrefab == null || spawnPoints.Count == 0)
+        if (enemyPrefabs.Count == 0 || spawnPoints.Count == 0)
         {
-            Debug.LogWarning("Spawner missing prefab or spawn points!");
+            Debug.LogWarning("Spawner missing enemy prefabs or spawn points!");
             return;
         }
 
@@ -41,7 +41,8 @@ public class SpawnEnemies : MonoBehaviour
 
             for (int i = 0; i < amount; i++)
             {
-                Instantiate(enemyPrefab, point.position, point.rotation);
+                GameObject chosenEnemy = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
+                Instantiate(chosenEnemy, point.position, point.rotation);
             }
         }
     }
