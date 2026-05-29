@@ -1,1 +1,1 @@
-A first person version of the game Megabonk on Steam.
+3D first person shooter game based on a game called Megabonk from steam.
